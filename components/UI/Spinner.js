@@ -1,18 +1,18 @@
-import { ClipLoader } from "react-spinners";
+import { PulseLoader } from "react-spinners";
 import styled from "styled-components";
 import css from "styled-jsx/css";
 
-export default function Spinner({ fullWidth }) {
+export default function Spinner({ fullwidth }) {
   return (
-    <Wrapper fullWidth={fullWidth}>
-      <ClipLoader color={"#555"} speedMultiplier={0.5} size={30} />
+    <Wrapper fullwidth={fullwidth}>
+      <PulseLoader color={"#555"} speedMultiplier={2} size={20} />
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
   ${(props) =>
-    props.fullWidth
+    props.fullwidth
       ? css`
           display: flex;
           justify-content: center;

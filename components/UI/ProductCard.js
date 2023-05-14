@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import styled, { css } from "styled-components";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,8 +12,15 @@ import {
   FilledWishlistIcon,
 } from "../Layout/ButtonIcon";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
-const ProductCard = ({ data, wished, largeShadow = false }) => {
+const ProductCard = ({
+  data,
+  wished,
+  largeshadow = false,
+  onRemoveFromWishList = () => {},
+}) => {
+  const { data: session } = useSession();
   const [domLoaded, setDomLoaded] = useState(false);
   const [isWished, setIsWished] = useState(wished || false);
 
@@ -21,13 +28,19 @@ const ProductCard = ({ data, wished, largeShadow = false }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    const nextValue = !isWished;
+
+    if (nextValue === false && onRemoveFromWishList) {
+      onRemoveFromWishList(data._id);
+    }
+
     axios
       .post("/api/wishlist", {
         productId: data._id,
       })
       .then(() => {});
 
-    setIsWished((prev) => !prev);
+    setIsWished(nextValue);
   };
 
   useEffect(() => {
@@ -37,10 +50,12 @@ const ProductCard = ({ data, wished, largeShadow = false }) => {
   const url = "/product/" + data._id;
   return (
     <ProductWrapper>
-      <WhiteBox href={url} largeShadow={largeShadow}>
-        <WishlistButton onClick={addToWishlistHandler} isWished={isWished}>
-          {isWished ? <FilledWishlistIcon /> : <DefaultWishlistIcon />}
-        </WishlistButton>
+      <WhiteBox href={url} largeshadow={largeShadow}>
+        {session && (
+          <WishlistButton onClick={addToWishlistHandler} isWished={isWished}>
+            {isWished ? <FilledWishlistIcon /> : <DefaultWishlistIcon />}
+          </WishlistButton>
+        )}
         <StyledImage
           src={data.images[0]}
           alt={data.title}
@@ -55,7 +70,12 @@ const ProductCard = ({ data, wished, largeShadow = false }) => {
           <Price>${data.price}</Price>
         </TitleAndPrice>
         {domLoaded && (
-          <FlyingButton _id={data._id} src={data.images[0]} fullWidth primary>
+          <FlyingButton
+            _id={data._id}
+            src={data.images[0]}
+            fullwidth="yes"
+            primary="yes"
+          >
             <AddToCartIcon /> Add to cart
           </FlyingButton>
         )}
@@ -72,7 +92,7 @@ const WhiteBox = styled(Link)`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 5px;
   position: relative;
   > div {
     position: unset !important;
@@ -81,7 +101,7 @@ const WhiteBox = styled(Link)`
 
   box-shadow: ${smallShadow};
   ${(props) =>
-    props.largeShadow &&
+    props.largeshadow &&
     css`
       box-shadow: ${largeShadow};
     `}

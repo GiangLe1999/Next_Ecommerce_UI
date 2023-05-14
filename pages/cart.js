@@ -7,10 +7,11 @@ import Checkout from "@/components/CartPage/Checkout";
 import OrderInfo from "@/components/CartPage/OrderInfo";
 import { CartContext } from "@/store/cart-context";
 import SuccessCheckout from "@/components/CartPage/SuccessCheckout";
-import { largeShadow } from "@/lib/boxShadow";
+import { largeShadow, smallShadow } from "@/lib/boxShadow";
+import axios from "axios";
 
 const CartPage = () => {
-  const { cartProducts, setCartProducts } = useContext(CartContext);
+  const { setCartProducts } = useContext(CartContext);
   const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ const CartPage = () => {
 const ColumnsWrapper = styled.div`
   display: grid;
   grid-template-columns: 1fr;
-  gap: 40px;
+  gap: 20px;
   margin-top: 40px;
 
   @media screen and (min-width: 1024px) {
@@ -53,9 +54,9 @@ const ColumnsWrapper = styled.div`
 
 export const BoxStyle = css`
   background-color: #fff;
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 30px;
-  box-shadow: ${largeShadow};
+  box-shadow: ${smallShadow};
 `;
 
 export const Box = styled.div`

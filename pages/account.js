@@ -8,6 +8,7 @@ import TitleStyle from "@/components/UI/Title";
 import styled from "styled-components";
 import { ButtonStyle } from "@/components/UI/Button";
 import {
+  CheckIcon,
   LoginIcon,
   LogoutIcon,
   SaveIcon,
@@ -21,6 +22,8 @@ import axios from "axios";
 import Spinner from "@/components/UI/Spinner";
 import ProductCard from "@/components/UI/ProductCard";
 import { hoverColor } from "@/lib/colors";
+import TabsComponent from "@/components/UI/Tabs";
+import SingleOrder from "@/components/UI/SingleOrder";
 
 const AccountPage = () => {
   const { data: session } = useSession();
@@ -31,25 +34,35 @@ const AccountPage = () => {
   const [streetAddress, setStreetAddress] = useState("");
   const [country, setCountry] = useState("");
   const [wishedProducts, setWishedProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   const [isUserInfoLoading, setIsUserInfoLoading] = useState(false);
   const [isListLoading, setIsListLoading] = useState(false);
+  const [isOrderLoading, setIsOrderLoading] = useState(false);
 
+  // Login
   const loginHandler = async () => {
     await signIn("google");
   };
 
+  // Logout
   const logoutHandler = async () => {
     await signOut({ callbackUrl: process.env.NEXT_PUBLIC_URL });
   };
 
+  // Xử lý update User info
   const submitHandler = (e) => {
     e.preventDefault();
     const data = { name, email, city, postalCode, streetAddress, country };
     axios.put("/api/user-info", data);
   };
 
+  // Fetch data User info
   useEffect(() => {
+    if (!session) {
+      return;
+    }
+
     setIsUserInfoLoading(true);
     axios.get("/api/user-info").then(({ data }) => {
       setName(data?.name);
@@ -60,15 +73,40 @@ const AccountPage = () => {
       setCountry(data?.country);
       setIsUserInfoLoading(false);
     });
-  }, []);
+  }, [session]);
 
+  // Fetch data wishlist
   useEffect(() => {
+    if (!session) {
+      return;
+    }
+
     setIsListLoading(true);
     axios.get("/api/wishlist").then((res) => {
       setWishedProducts(res.data.map((wp) => wp.product));
       setIsListLoading(false);
     });
-  }, []);
+  }, [session]);
+
+  // Fetch data orders
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+
+    setIsOrderLoading(true);
+    axios.get("/api/orders").then((res) => {
+      setOrders(res.data);
+      setIsOrderLoading(false);
+    });
+  }, [session]);
+
+  // Remove Product khỏi wishilist
+  const removeFromWishlistHandler = (_id) => {
+    setWishedProducts((prev) => {
+      return [...prev].filter((p) => p._id.toString() !== _id);
+    });
+  };
 
   return (
     <Wrapper>
@@ -77,143 +115,231 @@ const AccountPage = () => {
           <ColsWrapper>
             {/* Wishlist */}
             <Box>
-              <Title>Your Wishlist</Title>
-              {!isListLoading && wishedProducts.length === 0 && (
-                <EmptySection>
-                  <EmptyImageWrapper>
-                    <EmptyImage
-                      src="/assets/empty-wishlist-3.png"
-                      alt="Empty wishlist"
-                      width={500}
-                      height={373}
-                    />
-                  </EmptyImageWrapper>
-                  <EmptyText>
-                    <EmptyTitle>Your Wishlist is empty!</EmptyTitle>
-                    <EmptyParagraph>
-                      Seems like you don&apos;t have wishes here. Let&apos; make
-                      a wish at <Link href="/products">All Products</Link> page!
-                    </EmptyParagraph>
-                  </EmptyText>
-                </EmptySection>
-              )}
-              {isListLoading && <Spinner fullWidth />}
-              {wishedProducts.length > 0 && !isListLoading && (
-                <RevealWrapper>
-                  <WishedProductGrid>
-                    {wishedProducts.map((wp) => (
-                      <ProductCard
-                        key={wp._id}
-                        data={wp}
-                        wished={true}
-                        largeShadow={true}
-                      />
-                    ))}
-                  </WishedProductGrid>
-                </RevealWrapper>
-              )}
+              <TabsComponent
+                tabslist={[
+                  {
+                    tabName: "Your Wishlist",
+                    tabContent: (
+                      <>
+                        {!isListLoading && wishedProducts.length === 0 && (
+                          <RevealWrapper>
+                            <EmptySection>
+                              <EmptyImageWrapper>
+                                <EmptyImage
+                                  src="/assets/empty-wishlist-3.png"
+                                  alt="Empty wishlist"
+                                  width={500}
+                                  height={373}
+                                />
+                              </EmptyImageWrapper>
+                              <EmptyText>
+                                <EmptyTitle>Your Wishlist is empty!</EmptyTitle>
+                                <EmptyParagraph>
+                                  Seems like you don&apos;t have wishes here.
+                                </EmptyParagraph>
+                                <EmptyParagraph>
+                                  Let&apos; make a wish at{" "}
+                                  <Link href="/products">All Products</Link>{" "}
+                                  page after logging your Google Account!
+                                </EmptyParagraph>
+                              </EmptyText>
+                            </EmptySection>
+                          </RevealWrapper>
+                        )}
+                        {isListLoading && <Spinner fullwidth="yes" />}
+                        {wishedProducts.length > 0 && !isListLoading && (
+                          <RevealWrapper>
+                            <WishedProductGrid>
+                              {wishedProducts.map((wp) => (
+                                <ProductCard
+                                  key={wp._id}
+                                  data={wp}
+                                  wished={true}
+                                  largeshadow={true}
+                                  onRemoveFromWishList={
+                                    removeFromWishlistHandler
+                                  }
+                                />
+                              ))}
+                            </WishedProductGrid>
+                          </RevealWrapper>
+                        )}
+                      </>
+                    ),
+                  },
+                  {
+                    tabName: "Your orders",
+                    tabContent: (
+                      <>
+                        {isOrderLoading && <Spinner fullwidth="yes" />}
+                        {!isListLoading && orders.length > 0 && (
+                          <RevealWrapper>
+                            <OrderTitle>
+                              {orders.length} order
+                              {orders.length > 1 ? "s" : ""} completed
+                              <CheckIcon />
+                            </OrderTitle>
+                            {orders.map((o) => (
+                              <SingleOrder key={o._id} order={o} />
+                            ))}
+                          </RevealWrapper>
+                        )}
+                        {!isListLoading && orders.length === 0 && (
+                          <RevealWrapper>
+                            <EmptySection>
+                              <EmptyImageWrapper>
+                                <EmptyImage
+                                  src="/assets/empty-order-5.png"
+                                  alt="Empty wishlist"
+                                  width={500}
+                                  height={373}
+                                />
+                              </EmptyImageWrapper>
+                              <EmptyText>
+                                <EmptyTitle>Your Orders is empty!</EmptyTitle>
+                                <EmptyParagraph>
+                                  Seems like you did not complete any Order.
+                                </EmptyParagraph>
+                                <EmptyParagraph>
+                                  Let&apos; find interesting products on our{" "}
+                                  <Link href="/products">All Products</Link>{" "}
+                                  page.
+                                </EmptyParagraph>
+                              </EmptyText>
+                            </EmptySection>
+                          </RevealWrapper>
+                        )}
+                      </>
+                    ),
+                  },
+                ]}
+              />
             </Box>
 
             {/* Form user info */}
             <AccountDetailBox>
-              <Title>Account details</Title>
-              {isUserInfoLoading ? (
-                <Spinner fullWidth />
-              ) : (
-                <>
-                  <StyledForm onSubmit={submitHandler}>
-                    <div>
-                      <StyledLabel htmlFor="name">Name</StyledLabel>
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="Your full name"
-                        value={name}
-                        name="name"
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <StyledLabel htmlFor="email">Email</StyledLabel>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="example@gmail.com"
-                        value={email}
-                        name="email"
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <StyledLabel htmlFor="street">Street Address</StyledLabel>
-                      <Input
-                        id="street"
-                        type="text"
-                        placeholder="Your street address"
-                        value={streetAddress}
-                        name="streetAddress"
-                        onChange={(e) => setStreetAddress(e.target.value)}
-                      />
-                    </div>
-                    <CityHolder>
-                      <div>
-                        <StyledLabel htmlFor="city">City</StyledLabel>
-                        <Input
-                          id="city"
-                          type="text"
-                          placeholder="Your country"
-                          value={city}
-                          name="city"
-                          onChange={(e) => setCity(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <StyledLabel htmlFor="postalCode">
-                          Postal code
-                        </StyledLabel>
-                        <Input
-                          id="postalCode"
-                          type="number"
-                          placeholder="Only numbers"
-                          value={postalCode}
-                          name="postalCode"
-                          onChange={(e) => setPostalCode(e.target.value)}
-                        />
-                      </div>
-                    </CityHolder>
-                    <div>
-                      <StyledLabel htmlFor="country">Country</StyledLabel>
-                      <Input
-                        id="country"
-                        type="text"
-                        placeholder="Your country"
-                        value={country}
-                        name="country"
-                        onChange={(e) => setCountry(e.target.value)}
-                      />
-                    </div>
-                    <FormActions>
-                      <Button type="submit" primary fullWidth>
-                        <SaveIcon /> Save Info
-                      </Button>
-                      <Line />
-                      <LogButtonSection>
-                        {session ? (
-                          <LogButton onClick={logoutHandler} primary fullWidth>
-                            <LogoutIcon />
-                            Log Out
-                          </LogButton>
-                        ) : (
-                          <LogButton onClick={loginHandler} primary fullWidth>
-                            <LoginIcon />
-                            Log In
-                          </LogButton>
-                        )}
-                      </LogButtonSection>
-                    </FormActions>
-                  </StyledForm>
-                </>
-              )}
+              <RevealWrapper>
+                {/* Đã đăng nhập */}
+                {session && (
+                  <>
+                    {" "}
+                    <Title>Account details</Title>
+                    {isUserInfoLoading ? (
+                      <Spinner fullwidth="yes" />
+                    ) : (
+                      <RevealWrapper>
+                        <StyledForm onSubmit={submitHandler}>
+                          <div>
+                            <StyledLabel htmlFor="name">Name</StyledLabel>
+                            <Input
+                              id="name"
+                              type="text"
+                              placeholder="Your full name"
+                              value={name}
+                              name="name"
+                              onChange={(e) => setName(e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <StyledLabel htmlFor="email">Email</StyledLabel>
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="example@gmail.com"
+                              value={email}
+                              name="email"
+                              onChange={(e) => setEmail(e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <StyledLabel htmlFor="street">
+                              Street Address
+                            </StyledLabel>
+                            <Input
+                              id="street"
+                              type="text"
+                              placeholder="Your street address"
+                              value={streetAddress}
+                              name="streetAddress"
+                              onChange={(e) => setStreetAddress(e.target.value)}
+                            />
+                          </div>
+                          <CityHolder>
+                            <div>
+                              <StyledLabel htmlFor="city">City</StyledLabel>
+                              <Input
+                                id="city"
+                                type="text"
+                                placeholder="Your country"
+                                value={city}
+                                name="city"
+                                onChange={(e) => setCity(e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <StyledLabel htmlFor="postalCode">
+                                Postal code
+                              </StyledLabel>
+                              <Input
+                                id="postalCode"
+                                type="number"
+                                placeholder="Only numbers"
+                                value={postalCode}
+                                name="postalCode"
+                                onChange={(e) => setPostalCode(e.target.value)}
+                              />
+                            </div>
+                          </CityHolder>
+                          <div>
+                            <StyledLabel htmlFor="country">Country</StyledLabel>
+                            <Input
+                              id="country"
+                              type="text"
+                              placeholder="Your country"
+                              value={country}
+                              name="country"
+                              onChange={(e) => setCountry(e.target.value)}
+                            />
+                          </div>
+                          <FormActions>
+                            <Button type="submit" primary="yes" fullwidth="yes">
+                              <SaveIcon /> Save Info
+                            </Button>
+                            <Line />
+                            <LogoutBtnSection>
+                              <LogoutBtn
+                                onClick={logoutHandler}
+                                primary="yes"
+                                fullwidth="yes"
+                              >
+                                <LogoutIcon />
+                                Log Out
+                              </LogoutBtn>
+                            </LogoutBtnSection>
+                          </FormActions>
+                        </StyledForm>
+                      </RevealWrapper>
+                    )}
+                  </>
+                )}
+
+                {/* Chưa đăng nhập */}
+                {!session && (
+                  <LoginSection>
+                    <LoginTitle>Your&apos;re not logged in</LoginTitle>
+                    <LoginParagraph>
+                      You can create a list of products you want to buy on our
+                      website after logging in with your Google Account.
+                    </LoginParagraph>
+                    <LoginBtn onClick={loginHandler}>
+                      <GoogleIconWrapper>
+                        <GoogleIcon src="/assets/google-icon.webp" />
+                      </GoogleIconWrapper>
+                      <p>Sign in with Google</p>
+                    </LoginBtn>
+                  </LoginSection>
+                )}
+              </RevealWrapper>
             </AccountDetailBox>
           </ColsWrapper>
         </RevealWrapper>
@@ -249,7 +375,7 @@ const Title = styled.h2`
   ${TitleStyle}
 `;
 
-const LogButton = styled.button`
+const LogoutBtn = styled.button`
   ${ButtonStyle}
   padding: 10px 25px;
 
@@ -258,6 +384,58 @@ const LogButton = styled.button`
     width: 23px;
     margin-right: 3px;
   }
+`;
+
+const LoginSection = styled.div`
+  text-align: center;
+`;
+
+const LoginTitle = styled.p`
+  font-size: 1.4rem;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-weight: 500;
+`;
+
+const LoginParagraph = styled.p`
+  font-size: 0.8rem;
+  margin-bottom: 20px;
+`;
+
+const LoginBtn = styled.button`
+  background-color: #2272f4;
+  border: none;
+  width: 100%;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 3px;
+
+  p {
+    color: #fff;
+    margin: 0;
+    font-size: 1.1rem;
+    flex-grow: 1;
+  }
+
+  &:hover {
+    background-color: #2769d5;
+  }
+`;
+
+const GoogleIconWrapper = styled.div`
+  width: 50px;
+  aspect-ratio: 1;
+  background-color: #fff;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const GoogleIcon = styled.img`
+  width: 50%;
 `;
 
 const ColsWrapper = styled.div`
@@ -285,6 +463,7 @@ const EmptySection = styled.div`
   flex-direction: column;
   gap: 10px;
   align-items: center;
+  text-align: center;
 `;
 
 const EmptyImageWrapper = styled.div`
@@ -310,23 +489,36 @@ const EmptyText = styled.div`
 `;
 
 const EmptyTitle = styled.p`
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 500;
   margin: 10px 0 15px;
 `;
 
 const EmptyParagraph = styled.p`
-  margin: 0;
+  margin: 0 0 5px;
   font-size: 0.8rem;
 
   a {
     font-weight: bold;
-    font-size: 0.9rem;
     color: ${primary};
     text-decoration: underline;
 
     &:hover {
       color: ${hoverColor};
     }
+  }
+`;
+
+const OrderTitle = styled.p`
+  display: flex;
+  align-items: center;
+  font-size: 1.4rem;
+  gap: 5px;
+  font-weight: 600;
+
+  svg {
+    width: 25px;
+    height: 25px;
   }
 `;
 
@@ -337,9 +529,10 @@ const Box = styled.div`
 const AccountDetailBox = styled.div`
   ${BoxStyle}
   max-height: 600px;
+  height: auto;
 `;
 
-const LogButtonSection = styled.div``;
+const LogoutBtnSection = styled.div``;
 
 const Line = styled.hr`
   margin: 25px 0;

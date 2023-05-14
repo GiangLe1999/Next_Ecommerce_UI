@@ -33,8 +33,12 @@ const StyledTable = styled.table`
       `}
   }
 
-  tr:not(:last-child) {
-    border-bottom: 1px solid ${primary};
+  tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  tr:last-child {
+    border: none;
   }
 
   td {

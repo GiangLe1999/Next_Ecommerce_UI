@@ -11,6 +11,7 @@ import { Box } from "@/pages/cart";
 import { smallShadow } from "@/lib/boxShadow";
 import { hoverColor, primary } from "@/lib/colors";
 import { RemoveIcon } from "../Layout/ButtonIcon";
+import { RevealWrapper } from "next-reveal";
 
 const extractProdQuantity = (cartProducts, prodId) => {
   return cartProducts.filter((productId) => productId === prodId).length;
@@ -19,11 +20,14 @@ const extractProdQuantity = (cartProducts, prodId) => {
 const Checkout = () => {
   const { cartProducts, setCartProducts } = useContext(CartContext);
   const [products, setProducts] = useState([]);
+  const [shippingFee, setShippingFee] = useState("");
 
+  // Thay đổi định dạng State lưu thông tin giỏ hàng
   const changedFormProducts = products.map((p) => {
     return { id: p._id, quantity: extractProdQuantity(cartProducts, p._id) };
   });
 
+  // Fetch data của các Products nằm trong Cart
   useEffect(() => {
     if (cartProducts?.length > 0) {
       axios.post("/api/cart", { ids: cartProducts }).then((res) => {
@@ -32,6 +36,7 @@ const Checkout = () => {
     }
   }, [cartProducts]);
 
+  // Gỡ sản phẩm khỏi giỏ hàng
   const removeItemsFromCart = (prodId) => {
     const copiedCartProducts = [...cartProducts];
     const updatedCartProducts = copiedCartProducts.filter(
@@ -40,37 +45,48 @@ const Checkout = () => {
     setCartProducts(updatedCartProducts);
   };
 
-  let total = 0;
+  // Get shipping fee
+  useEffect(() => {
+    axios
+      .get("/api/settings?name=shippingFee")
+      .then((res) => setShippingFee(res.data.value));
+  }, []);
+
+  // Tính subTotal (chưa có shipping fee)
+  let subTotal = 0;
   for (const productId of cartProducts) {
     const price = products.find((p) => productId === p._id)?.price;
-    total += price;
+    subTotal += price;
   }
 
   return (
     <Box>
       {cartProducts?.length === 0 && (
-        <EmptyCart>
-          <EmptyCartImageWrapper>
-            <EmptyCartImage
-              src="/assets/empty-cart.webp"
-              alt="empty cart"
-              width={535}
-              height={357}
-              priority={true}
-            />
-          </EmptyCartImageWrapper>
-          <EmptyTitle>Your cart is currently empty.</EmptyTitle>
-          <EmptyParagraph>
-            Before proceed to checkout, you must add some products to your cart.
-          </EmptyParagraph>
-          <EmptyParagraph>
-            You will find a lot of interesting products on our{" "}
-            <Link href="/products">All Products</Link> page.
-          </EmptyParagraph>
-        </EmptyCart>
+        <RevealWrapper>
+          <EmptyCart>
+            <EmptyCartImageWrapper>
+              <EmptyCartImage
+                src="/assets/empty-cart.webp"
+                alt="empty cart"
+                width={535}
+                height={357}
+                priority={true}
+              />
+            </EmptyCartImageWrapper>
+            <EmptyTitle>Your cart is currently empty</EmptyTitle>
+            <EmptyParagraph>
+              Before proceed to checkout, you must add some products to your
+              cart.
+            </EmptyParagraph>
+            <EmptyParagraph>
+              You will find a lot of interesting products on our{" "}
+              <Link href="/products">All Products</Link> page.
+            </EmptyParagraph>
+          </EmptyCart>
+        </RevealWrapper>
       )}
       {cartProducts?.length !== 0 && (
-        <>
+        <RevealWrapper>
           <CartTitle>Cart</CartTitle>
           <Table col={3}>
             <thead>
@@ -126,14 +142,24 @@ const Checkout = () => {
                   </tr>
                 ))}
 
-              <tr>
-                <Total>Total:</Total>
+              <CalculateRow>
+                <td>Subtotal:</td>
                 <td></td>
-                <Total>${total}</Total>
-              </tr>
+                <Price>${subTotal}</Price>
+              </CalculateRow>
+              <CalculateRow>
+                <td>Shipping:</td>
+                <td></td>
+                <Price>${shippingFee}</Price>
+              </CalculateRow>
+              <Total>
+                <td>Total:</td>
+                <td></td>
+                <td>${subTotal + parseInt(shippingFee || 0)}</td>
+              </Total>
             </tbody>
           </Table>
-        </>
+        </RevealWrapper>
       )}
     </Box>
   );
@@ -170,8 +196,8 @@ const ProductImageBox = styled.div`
 `;
 
 const Price = styled.td`
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-size: 1.1rem;
+  font-weight: 500;
 `;
 
 const Remove = styled.button`
@@ -199,13 +225,13 @@ const Remove = styled.button`
   }
 `;
 
-const Total = styled.td`
+const Total = styled.tr`
   text-align: left;
   text-transform: uppercase;
   color: ${primary};
-  padding: 10px 0;
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  border-top: 1px solid ${primary} !important;
 `;
 
 const EmptyCart = styled.div`
@@ -229,12 +255,13 @@ const EmptyCartImage = styled(Image)`
 `;
 
 const EmptyTitle = styled.p`
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 500;
   margin: 10px 0 15px;
 `;
 
 const EmptyParagraph = styled.p`
-  margin: 0;
+  margin: 0 0 5px;
   font-size: 0.8rem;
 
   a {
@@ -248,4 +275,9 @@ const EmptyParagraph = styled.p`
     }
   }
 `;
+
+const CalculateRow = styled.tr`
+  border: none;
+`;
+
 export default Checkout;

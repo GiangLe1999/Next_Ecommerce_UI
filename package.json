@@ -23,6 +23,7 @@
     "react": "^18.2.0",
     "react-dom": "18.2.0",
     "react-spinners": "^0.13.8",
+    "react-tabs": "^6.0.1",
     "stripe": "^12.4.0",
     "styled-components": "^5.3.9"
   }

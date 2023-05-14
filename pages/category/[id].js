@@ -165,7 +165,7 @@ const CategoryPage = ({
           </Radio>
         </FilterWrapper>
 
-        {isLoading && <Spinner fullWidth />}
+        {isLoading && <Spinner fullwidth="yes" />}
 
         {!isLoading && (
           <>
@@ -198,7 +198,7 @@ const FilterWrapper = styled.div`
   margin-bottom: 30px;
   padding: 20px 20px 30px 20px;
   background-color: #fff;
-  border-radius: 10px;
+  border-radius: 5px;
   box-shadow: ${smallShadow};
 
   p {

@@ -61,7 +61,7 @@ const FlyingButtonWrapper = styled.div`
     position: fixed;
     z-index: 5;
     animation: fly 1s ease-in;
-    border-radius: 10px;
+    border-radius: 5px;
   }
 
   button {
@@ -100,13 +100,13 @@ const FlyingButtonWrapper = styled.div`
       `}
 
     ${(props) =>
-      props.fullWidth &&
+      props.fullwidth &&
       css`
         width: 100%;
       `}
 
       ${(props) =>
-      props.fullWidthMobile &&
+      props.fullwidthmobile &&
       css`
         @media screen and (max-width: 768px) {
           width: 100%;

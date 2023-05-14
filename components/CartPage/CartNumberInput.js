@@ -1,3 +1,4 @@
+import { primary } from "@/lib/colors";
 import { CartContext } from "@/store/cart-context";
 import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
@@ -56,7 +57,7 @@ const InputBox = styled.div`
     position: absolute;
     top: 1px;
     right: 1px;
-    color: #777777;
+    color: white;
     font-size: 16px;
     content: "+";
     pointer-events: none;
@@ -64,21 +65,21 @@ const InputBox = styled.div`
     align-items: center;
     justify-content: center;
     width: 30%;
-    background-color: #e9e9e9;
+    background-color: ${primary};
     border-top-right-radius: 10px;
     border-left: 1px solid rgba(173, 173, 173, 0.5);
     border-bottom: 1px solid rgba(2, 2, 2, 0.5);
   }
 
   &:after {
-    background-color: #e9e9e9;
+    background-color: ${primary};
     border-bottom-right-radius: 10px;
     padding-top: 3px;
     height: 40%;
     position: absolute;
     bottom: 1px;
     right: 1px;
-    color: #777777;
+    color: white;
     font-size: 20px;
     content: "-";
     display: flex;

@@ -9,6 +9,8 @@ import { AddToCartIcon } from "@/components/Layout/ButtonIcon";
 import { CartContext } from "@/store/cart-context";
 import TitleStyle from "@/components/UI/Title";
 import FlyingButton from "@/components/UI/FlyingButton";
+import ProductReviews from "@/components/ProductDetailPage/ProductReviews";
+import { RevealWrapper } from "next-reveal";
 
 const ProductDetailPage = ({ product }) => {
   const { addProdToCart } = useContext(CartContext);
@@ -19,26 +21,35 @@ const ProductDetailPage = ({ product }) => {
 
   return (
     <>
+      <RevealWrapper>
+        <Center>
+          <ColumnWrapper>
+            <ProductImages images={product.images} />
+            <div>
+              <Title>{product.title}</Title>
+              <p>{product.description}</p>
+              <Price>${product.price}</Price>
+              {domLoaded && (
+                <FlyingButton
+                  primary="yess"
+                  size="l"
+                  onClick={() => addProdToCart(product._id)}
+                  src={product.images[0]}
+                >
+                  <AddToCartIcon />
+                  &nbsp;Add to cart
+                </FlyingButton>
+              )}
+            </div>
+          </ColumnWrapper>
+        </Center>
+      </RevealWrapper>
       <Center>
-        <ColumnWrapper>
-          <ProductImages images={product.images} />
-          <div>
-            <Title>{product.title}</Title>
-            <p>{product.description}</p>
-            <Price>${product.price}</Price>
-            {domLoaded && (
-              <FlyingButton
-                primary
-                size="l"
-                onClick={() => addProdToCart(product._id)}
-                src={product.images[0]}
-              >
-                <AddToCartIcon />
-                &nbsp;Add to cart
-              </FlyingButton>
-            )}
-          </div>
-        </ColumnWrapper>
+        <RevealWrapper>
+          <ReviewsWrapper>
+            <ProductReviews product={product} />
+          </ReviewsWrapper>
+        </RevealWrapper>
       </Center>
     </>
   );
@@ -51,8 +62,12 @@ const ColumnWrapper = styled.div`
   gap: 20px;
 
   @media screen and (min-width: 768px) {
-    grid-template-columns: 0.8fr 1.2fr;
+    grid-template-columns: 1fr 1fr;
   }
+`;
+
+const ReviewsWrapper = styled.div`
+  margin-top: 40px;
 `;
 
 const Price = styled.div`

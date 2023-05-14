@@ -88,7 +88,7 @@ const SearchPage = () => {
               </ProductsGrid>
             </>
           )}
-          {isLoading && <Spinner fullWidth />}
+          {isLoading && <Spinner fullwidth="yes" />}
           {notFound && !isLoading && (
             <RevealWrapper>
               <p>

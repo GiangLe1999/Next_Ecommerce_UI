@@ -2,6 +2,7 @@ import FeaturedProducts from "@/components/HomePage/FeaturedProducts";
 import NewProducts from "@/components/HomePage/NewProducts";
 import { mongooseConnect } from "@/lib/mongoose";
 import { Product } from "@/models/Product";
+import { Setting } from "@/models/Setting";
 import { WishedProduct } from "@/models/WishedProduct";
 import { getServerSession } from "next-auth";
 import React from "react";
@@ -10,7 +11,10 @@ import { authOptions } from "./api/auth/[...nextauth]";
 const HomePage = (props) => {
   return (
     <>
-      <FeaturedProducts data={props.featuredProduct} />
+      <FeaturedProducts
+        data={props.featuredProduct}
+        featuredImage={props.featuredProductImage}
+      />
       <NewProducts
         data={props.newProducts}
         wishedData={props.wishedNewProducts}
@@ -20,8 +24,15 @@ const HomePage = (props) => {
 };
 
 export async function getServerSideProps(context) {
-  const featuredProductId = "64562707467520c8651686f4";
   await mongooseConnect();
+
+  const featuredProductSetting = await Setting.findOne({
+    name: "featuredProduct",
+  });
+
+  const featuredProductId =
+    featuredProductSetting.value.featuredProductId.toString();
+  const featuredProductImage = featuredProductSetting.value.featuredImage;
 
   const featuredProduct = await Product.findById(featuredProductId);
 
@@ -48,6 +59,7 @@ export async function getServerSideProps(context) {
       featuredProduct: JSON.parse(JSON.stringify(featuredProduct)),
       newProducts: JSON.parse(JSON.stringify(newProducts)),
       wishedNewProducts: wishedNewProducts.map((i) => i.product.toString()),
+      featuredProductImage,
     },
   };
 }

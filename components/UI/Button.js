@@ -49,7 +49,7 @@ export const ButtonStyle = css`
       background-color: ${primary};
       color: #fff;
       outline: 1px solid ${primary};
-      padding: 10px 0;
+      padding: 10px;
       justify-content: center;
 
       svg {
@@ -64,7 +64,7 @@ export const ButtonStyle = css`
     `}
 
     ${(props) =>
-    props.fullWidth &&
+    props.fullwidth &&
     css`
       width: 100%;
     `}

@@ -9,7 +9,7 @@ import ButtonLink from "../UI/ButtonLink";
 import FlyingButton from "../UI/FlyingButton";
 import { primary } from "@/lib/colors";
 
-const FeaturedProducts = ({ data }) => {
+const FeaturedProducts = ({ data, featuredImage }) => {
   const [domLoaded, setDomLoaded] = useState(false);
   useEffect(() => {
     setDomLoaded(true);
@@ -30,10 +30,9 @@ const FeaturedProducts = ({ data }) => {
                 </ButtonLink>
                 {domLoaded && (
                   <FlyingButton
-                    src={"/assets/home-main-image2.png"}
                     size="l"
-                    fullWidthMobile
-                    white
+                    fullwidthmobile="yes"
+                    white="yes"
                     _id={data._id}
                   >
                     <AddToCartIcon />
@@ -46,7 +45,7 @@ const FeaturedProducts = ({ data }) => {
           <StyledRevealWrapper delay={100}>
             <MainImageWrapper>
               <StyledImage
-                src={"/assets/home-main-image2.png"}
+                src={featuredImage}
                 alt="Home page main image"
                 width={920}
                 height={420}
